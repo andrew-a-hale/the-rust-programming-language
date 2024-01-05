@@ -1,41 +1,29 @@
-use std::env;
-use ibig::{UBig, ubig};
+use ibig::{ubig, UBig};
+use std::{collections::HashMap, env, time::SystemTime};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let n: u32 = args[1].parse().unwrap();
 
-    let suffix = suffix(n);
-    let ans = fib(n);
-    println!("The {n}{suffix} fibonacci is {ans}");
+    let start = SystemTime::now();
+    let mut cache: HashMap<usize, UBig> = HashMap::new();
+    cache.insert(0, ubig!(0));
+    cache.insert(1, ubig!(1));
+    cache.insert(2, ubig!(1));
+
+    let ans = fast_fib(n as usize, &mut cache);
+    println!("The fib({n}) fibonacci is {ans}");
+    println!("Duration: {:?}", start.elapsed().unwrap());
 }
 
-fn fib(n: u32) -> UBig {
-    let mut a = ubig!(1);
-    let mut b = ubig!(1);
-    let mut c: UBig;
-    if n > 1 {
-        for _ in 1..n {
-            c = b.clone();
-            b = b + a;
-            a = c;
-        }
+fn fast_fib(n: usize, cache: &mut HashMap<usize, UBig>) -> UBig {
+    if cache.contains_key(&n) {
+        return cache.get(&n).unwrap().clone();
     }
 
-    b
-}
+    let ans = (fast_fib((n / 2) + 1, cache) * fast_fib(n - (n / 2), cache))
+        + (fast_fib(n / 2, cache) * fast_fib(n - (n / 2) - 1, cache));
+    cache.insert(n, ans.clone());
 
-fn suffix(n: u32) -> String {
-    let n = n % 10;
-    if (4..9).contains(&n) || n == 0 {
-        "th".to_string()
-    } else if n == 1 {
-        "st".to_string()
-    } else if n == 2 {
-        "nd".to_string()
-    } else if n == 3 {
-        "rd".to_string()
-    } else {
-        panic!("unknown suffix");
-    }
+    ans
 }

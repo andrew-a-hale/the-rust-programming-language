@@ -1,33 +1,52 @@
-use std::{env, collections::HashMap};
+use std::env;
+use ibig::{UBig, ubig};
+
+struct Queue {
+    vals: Vec<UBig>,
+}
+
+impl Queue {
+    fn new() -> Queue {
+        Queue {vals: vec![ubig!(1), ubig!(1)]}
+    }
+
+    fn push(&mut self, v: &UBig) {
+        self.vals.remove(0);
+        self.vals.push(v.clone());
+    }
+
+    fn sumpush(&mut self) -> UBig {
+        let mut s = ubig!(0);
+        for v in &self.vals {
+            s += v
+        }
+        self.push(&s);
+        s
+    }
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let n: u64 = args[1].parse().unwrap();
+    let n: u32 = args[1].parse().unwrap();
+
+    let mut cache = Queue::new();
     let suffix = suffix(n);
-    let ans = fib(n);
+    let ans = fib(n, &mut cache);
     println!("The {n}{suffix} fibonacci is {ans}");
 }
 
-fn fib(n: u64) -> u64 {
-    let mut cache: HashMap<u64, u64> = HashMap::new();
-    cache.insert(0, 1);
-    cache.insert(1, 1);
-
-    fn _fib(n: u64, cache: &mut HashMap<u64, u64>) -> u64 {
-        if cache.contains_key(&n) {
-            *cache.get(&n).unwrap()
-        } else {
-            let ans = _fib(n - 1, cache) + _fib(n - 2, cache);
-            cache.insert(n, ans);
-            ans
-
+fn fib(n: u32, cache: &mut Queue) -> UBig {
+    let mut ans = ubig!(1);
+    if n > 1 {
+        for _ in 1..n {
+            ans = cache.sumpush();
         }
     }
 
-    _fib(n, &mut cache)
+    ans
 }
 
-fn suffix(n: u64) -> String {
+fn suffix(n: u32) -> String {
     let n = n % 10;
     if (4..9).contains(&n) || n == 0 {
         "th".to_string()

@@ -1,49 +1,28 @@
 use std::env;
 use ibig::{UBig, ubig};
 
-struct Queue {
-    vals: Vec<UBig>,
-}
-
-impl Queue {
-    fn new() -> Queue {
-        Queue {vals: vec![ubig!(1), ubig!(1)]}
-    }
-
-    fn push(&mut self, v: &UBig) {
-        self.vals.remove(0);
-        self.vals.push(v.clone());
-    }
-
-    fn sumpush(&mut self) -> UBig {
-        let mut s = ubig!(0);
-        for v in &self.vals {
-            s += v
-        }
-        self.push(&s);
-        s
-    }
-}
-
 fn main() {
     let args: Vec<String> = env::args().collect();
     let n: u32 = args[1].parse().unwrap();
 
-    let mut cache = Queue::new();
     let suffix = suffix(n);
-    let ans = fib(n, &mut cache);
+    let ans = fib(n);
     println!("The {n}{suffix} fibonacci is {ans}");
 }
 
-fn fib(n: u32, cache: &mut Queue) -> UBig {
-    let mut ans = ubig!(1);
+fn fib(n: u32) -> UBig {
+    let mut a = ubig!(1);
+    let mut b = ubig!(1);
+    let mut c: UBig;
     if n > 1 {
         for _ in 1..n {
-            ans = cache.sumpush();
+            c = b.clone();
+            b = b + a;
+            a = c;
         }
     }
 
-    ans
+    b
 }
 
 fn suffix(n: u32) -> String {

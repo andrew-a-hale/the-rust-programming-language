@@ -1,18 +1,13 @@
 use rug::Integer;
-use std::{collections::HashMap, env, time::SystemTime};
+use std::{env, time::SystemTime};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let n: u32 = args[1].parse().unwrap();
-
     let start = SystemTime::now();
-    let mut cache: HashMap<usize, Integer> = HashMap::new();
-    cache.insert(0, Integer::from(0));
-    cache.insert(1, Integer::from(1));
-    cache.insert(2, Integer::from(1));
-
     let ans = calc(n as usize);
-    println!("The fib({n}) fibonacci is {}", ans);
+    // println!("The fib({n}) fibonacci is {}", &ans);
+    assert!(is_fib(&ans));
     println!("Duration: {:?}", start.elapsed().unwrap());
 }
 
@@ -28,6 +23,7 @@ fn calc(n: usize) -> Integer {
 }
 
 // fib(n), fib(n + 1)
+// using fib(2n) and fib(2n + 1) identites above
 fn fib(n: usize) -> (Integer, Integer) {
     if n == 0 {
         (Integer::from(0), Integer::from(1))
@@ -44,4 +40,16 @@ fn fib(n: usize) -> (Integer, Integer) {
             (new_b, new_c)
         }
     }
+}
+
+// checking if fib(n) is valid by property
+// fib(n) is true <=> 5 * n^2 +/- 4 is a perfect square
+fn is_fib(n: &Integer) -> bool {
+    let s = 5 * Integer::from(n * n);
+    is_square(Integer::from(4 + &s)) || is_square(Integer::from(-4 + &s))
+}
+
+fn is_square(n: Integer) -> bool {
+    let s = Integer::sqrt(n.clone());
+    Integer::from(&s * &s) == Integer::from(n)
 }

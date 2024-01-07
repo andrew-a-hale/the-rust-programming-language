@@ -1,14 +1,14 @@
-use rug::Integer;
-use std::{env, time::SystemTime};
+use rug::{Integer, ops::{MulFrom, AddFrom}};
+use std::{env, time::SystemTime, ops::AddAssign};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let n: u32 = args[1].parse().unwrap();
     let start = SystemTime::now();
-    let ans = calc(n as usize);
-    // println!("The fib({n}) fibonacci is {}", &ans);
-    assert!(is_fib(&ans));
+    let mut ans = calc(n as usize);
+    println!("The fib({n}) fibonacci is {}", &ans);
     println!("Duration: {:?}", start.elapsed().unwrap());
+    assert!(is_fib(&mut ans));
 }
 
 // handle fib(2n) = fib(n) * (2 * fib(n + 1) - fib(n))
@@ -18,7 +18,7 @@ fn calc(n: usize) -> Integer {
     if n % 2 == 0 {
         Integer::from(&a * (Integer::from(2) * b - &a))
     } else {
-        Integer::from(&a * &a) + Integer::from(&b * &b)
+        a.square() + b.square()
     }
 }
 
@@ -29,27 +29,37 @@ fn fib(n: usize) -> (Integer, Integer) {
         (Integer::from(0), Integer::from(1))
     } else {
         let (a, b) = fib(n / 2);
-        let new_a = Integer::from(&a * (Integer::from(2) * &b - &a));
-        let new_b = Integer::from(&a * &a) + Integer::from(&b * &b);
+        let mut new_a = Integer::from(&a * (Integer::from(2) * &b - &a));
+        let new_b =  a.square() + b.square();
         if n % 2 == 0 {
             // returns fib(n), fib(n + 1)
             (new_a, new_b)
         } else {
-            let new_c = Integer::from(&new_a + &new_b);
             // returns fib(n + 1), fib(n) + fib(n + 1)
-            (new_b, new_c)
+            new_a.add_assign(&new_b);
+            (new_b, new_a)
         }
     }
 }
 
 // checking if fib(n) is valid by property
 // fib(n) is true <=> 5 * n^2 +/- 4 is a perfect square
-fn is_fib(n: &Integer) -> bool {
-    let s = 5 * Integer::from(n * n);
-    is_square(Integer::from(4 + &s)) || is_square(Integer::from(-4 + &s))
-}
+fn is_fib(n: &mut Integer) -> bool {
+    // calc 5 * n * n
+    n.square_mut();
+    n.mul_from(5);
 
-fn is_square(n: Integer) -> bool {
-    let s = Integer::sqrt(n.clone());
-    Integer::from(&s * &s) == Integer::from(n)
+    // check +4
+    n.add_from(4);
+    if n.is_perfect_square() {
+        return true
+    }
+
+    // check -4
+    n.add_from(-8);
+    if n.is_perfect_square() {
+       return true 
+    } 
+
+    false
 }

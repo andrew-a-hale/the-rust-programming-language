@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::HashMap};
+use std::collections::HashMap;
 
 fn main() {
     let xs = vec![3, 4, 11, 12, 6, 1, 2, 3, 5, 7, 4];
@@ -19,26 +19,19 @@ fn median(xs: &Vec<i32>) -> f32 {
     }
 }
 
-fn mode(xs: &[i32]) -> Vec<i32> {
+fn mode(xs: &[i32]) -> i32 {
     let mut digits = HashMap::new();
+    let mut most_frequent = 0;
+    let mut highest = i32::min_value();
 
     for v in xs.iter() {
         let count = digits.entry(*v).or_insert(0);
-        *count += 1
+        *count += 1;
+        if *count > most_frequent {
+            most_frequent = *count;
+            highest = *v
+        }
     }
 
-    let mut highest = 0;
-    let mut mode = Vec::new();
-    for (k, v) in digits {
-        match v.cmp(&highest) {
-            Ordering::Equal => mode.push(k),
-            Ordering::Greater => {
-                highest = v;
-                mode = vec![k];
-            }
-            Ordering::Less => (),
-        };
-    }
-
-    mode
+    highest
 }

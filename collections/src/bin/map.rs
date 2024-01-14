@@ -2,23 +2,28 @@ use std::collections::HashMap;
 
 struct HumanResources {
     employees: HashMap<String, String>,
+    count: u32,
 }
 
 impl HumanResources {
     fn new() -> HumanResources {
         HumanResources {
             employees: HashMap::<String, String>::new(),
+            count: 0,
         }
     }
 
     fn add(&mut self, s: &str) {
         let cmd: Vec<&str> = s.splitn(4, ' ').collect();
-        match (cmd.get(1), cmd.get(3)) {
+        let (name, dep) = (cmd.get(1), cmd.get(3));
+
+        match (name, dep) {
             (Some(x), Some(y)) => {
                 if self.employees.contains_key(*x) {
                     eprintln!("Error: employee {} is already at {}", x, y)
                 } else {
                     self.employees.insert(x.to_string(), y.to_string());
+                    self.count += 1;
                 }
             }
             (None, Some(_)) => eprintln!("Error: failed to parse name"),
@@ -28,7 +33,7 @@ impl HumanResources {
     }
 
     fn list(&self) {
-        if self.employees.is_empty() {
+        if self.count == 0 {
             println!("No-one has been added yet")
         }
         for (k, v) in self.employees.iter() {
